@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Center Business Services - Offline Preview</title>
+  <style>
+    :root {
+      --ink: #101218;
+      --muted: #667085;
+      --line: #e7e9ee;
+      --panel: #f7f8fb;
+      --brand: #2563eb;
+      --green: #16845b;
+      --amber: #b56a04;
+      --red: #c93737;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f5f7fa;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
+    aside {
+      background: var(--white);
+      border-right: 1px solid var(--line);
+      padding: 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+    }
+    .brand strong { display: block; font-size: 14px; }
+    .brand span { color: var(--muted); font-size: 12px; }
+    nav { display: grid; gap: 6px; }
+    .nav-btn {
+      height: 40px;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      text-align: left;
+      padding: 0 12px;
+      font-weight: 600;
+    }
+    .nav-btn.active { background: var(--ink); color: white; }
+    main { min-width: 0; }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      margin: 0 0 3px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      letter-spacing: 0;
+    }
+    .content { padding: 22px 24px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    input, select, textarea {
+      border: 1px solid var(--line);
+      background: var(--white);
+      border-radius: 7px;
+      height: 38px;
+      padding: 0 11px;
+      color: var(--ink);
+      min-width: 0;
+    }
+    textarea {
+      height: 88px;
+      padding-top: 9px;
+      resize: vertical;
+    }
+    .btn {
+      height: 38px;
+      border-radius: 7px;
+      padding: 0 12px;
+      background: var(--ink);
+      color: white;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn.secondary {
+      background: white;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .metrics {
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      margin-bottom: 18px;
+    }
+    .card, .table-wrap {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .card { padding: 16px; }
+    .card span { color: var(--muted); font-size: 13px; }
+    .card strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+    .table-title {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .scroll { overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      text-align: left;
+      padding: 12px 14px;
+    }
+    td {
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      vertical-align: middle;
+    }
+    td strong { color: var(--ink); }
+    .right { text-align: right; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 6px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .green { border-color: #bde8d6; background: #effaf5; color: var(--green); }
+    .blue { border-color: #bdd2ff; background: #eef4ff; color: var(--brand); }
+    .amber { border-color: #f4d092; background: #fff7e8; color: var(--amber); }
+    .red { border-color: #f0b8b8; background: #fff0f0; color: var(--red); }
+    .hidden { display: none !important; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(16, 18, 24, .34);
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .modal {
+      width: min(680px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: 0 18px 60px rgba(16, 18, 24, .12);
+    }
+    .modal-head {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 16px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    label.full { grid-column: 1 / -1; }
+    .note {
+      border: 1px solid #bdd2ff;
+      background: #eef4ff;
+      color: #174ea6;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      aside {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      nav { grid-template-columns: repeat(2, 1fr); }
+      header { align-items: flex-start; flex-direction: column; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="mark">CB</div>
+        <div>
+          <strong>Center Business Services</strong>
+          <span>Offline preview</span>
+        </div>
+      </div>
+      <nav id="nav"></nav>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <p class="eyebrow">Business Services Office</p>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <div class="control-row">
+          <span class="badge blue">Mock data only</span>
+          <select id="roleSelect" title="Preview role">
+            <option value="owner">Owner</option>
+            <option value="manager">Manager</option>
+            <option value="employee">Employee</option>
+          </select>
+        </div>
+      </header>
+      <section class="content">
+        <div class="note">This preview runs without Convex. It is for testing screens and basic workflows only.</div>
+        <div id="screen"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalHost"></div>
+
+  <script>
+    const services = [
+      "EIN Application", "Business License", "Sales Tax Registration", "Franchise & Excise Tax",
+      "Payroll Setup", "Bookkeeping", "Tax Return Filing", "EBT / SNAP Application", "Food Permit",
+      "Tobacco License", "Annual Report Filing", "Certificate of Occupancy"
+    ];
+    const users = [
+      { id: "u1", name: "Avery Center", email: "owner@centerbusiness.test", role: "owner", title: "Owner" },
+      { id: "u2", name: "Maya Patel", email: "manager@centerbusiness.test", role: "manager", title: "Office Manager" },
+      { id: "u3", name: "Jordan Ellis", email: "employee@centerbusiness.test", role: "employee", title: "Business Services Specialist" }
+    ];
+    let customers = [
+      { id: "c1", businessName: "Luna Market", phoneNumber: "(615) 555-0184", businessType: "Convenience Store", openingBalance: 0, balance: 0 },
+      { id: "c2", businessName: "Riverbend Deli", phoneNumber: "(615) 555-0112", businessType: "Restaurant", openingBalance: 125, balance: 350 },
+      { id: "c3", businessName: "Oak Supply Co.", phoneNumber: "(901) 555-0199", businessType: "Wholesale", openingBalance: 0, balance: 225 }
+    ];
+    let jobs = [
+      { id: "j1", customerId: "c1", jobType: "EIN Application", fee: 150, amountPaid: 150, assignedEmployeeId: "u3", status: "Completed", dueDate: "2026-05-08", priority: "Medium", notes: "Confirmation letter delivered." },
+      { id: "j2", customerId: "c2", jobType: "Business License", fee: 325, amountPaid: 100, assignedEmployeeId: "u3", status: "In Progress", dueDate: "2026-05-12", priority: "High", notes: "Waiting on lease copy." },
+      { id: "j3", customerId: "c3", jobType: "Annual Report Filing", fee: 225, amountPaid: 0, assignedEmployeeId: "u2", status: "New", dueDate: "2026-05-20", priority: "Low", notes: "Confirm SOS control number." }
+    ];
+    let payments = [
+      { id: "p1", jobId: "j1", amount: 150, note: "Paid in full", receivedBy: "u2", paidAt: "2026-05-04" },
+      { id: "p2", jobId: "j2", amount: 100, note: "Deposit", receivedBy: "u1", paidAt: "2026-05-05" }
+    ];
+
+    let role = "owner";
+    let tab = "dashboard";
+    let filterStatus = "All";
+    let filterPriority = "All";
+
+    const money = value => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value || 0);
+    const customer = id => customers.find(c => c.id === id);
+    const user = id => users.find(u => u.id === id);
+    const canManage = () => role === "owner" || role === "manager";
+    const visibleJobs = () => jobs.filter(job => canManage() || job.assignedEmployeeId === "u3");
+    const remaining = job => Math.max(0, job.fee - job.amountPaid);
+    const badge = (text, tone = "") => `<span class="badge ${tone}">${text}</span>`;
+
+    function recalcBalances() {
+      customers = customers.map(c => {
+        const jobBalance = jobs.filter(j => j.customerId === c.id).reduce((sum, job) => sum + remaining(job), 0);
+        return { ...c, balance: c.openingBalance + jobBalance };
+      });
+    }
+
+    function setTab(next) {
+      tab = next;
+      render();
+    }
+
+    function renderNav() {
+      const tabs = [
+        ["dashboard", "Dashboard"],
+        ["customers", "Customers"],
+        ["jobs", "Jobs"],
+        ["payments", "Payments"],
+        ["team", "Team"]
+      ].filter(([key]) => canManage() || key === "dashboard" || key === "jobs");
+      document.getElementById("nav").innerHTML = tabs.map(([key, label]) =>
+        `<button class="nav-btn ${tab === key ? "active" : ""}" onclick="setTab('${key}')">${label}</button>`
+      ).join("");
+      if (!tabs.some(([key]) => key === tab)) tab = "dashboard";
+    }
+
+    function metricsHtml() {
+      const list = visibleJobs();
+      const totalRevenue = list.reduce((sum, job) => sum + job.amountPaid, 0);
+      const outstanding = list.reduce((sum, job) => sum + remaining(job), 0);
+      return `
+        <div class="grid metrics">
+          <div class="card"><span>Total jobs</span><strong>${list.length}</strong></div>
+          <div class="card"><span>Pending jobs</span><strong>${list.filter(j => j.status !== "Completed").length}</strong></div>
+          <div class="card"><span>Completed</span><strong>${list.filter(j => j.status === "Completed").length}</strong></div>
+          <div class="card"><span>Revenue</span><strong>${money(totalRevenue)}</strong></div>
+          <div class="card"><span>Outstanding</span><strong>${money(outstanding)}</strong></div>
+        </div>
+      `;
+    }
+
+    function jobsTable(list) {
+      return `
+        <div class="table-wrap">
+          <div class="table-title">Jobs <span>${list.length} shown</span></div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Customer</th><th>Service</th><th>Assigned</th><th>Due</th><th>Priority</th><th>Status</th><th class="right">Paid</th><th class="right">Balance</th></tr></thead>
+              <tbody>
+                ${list.map(job => `
+                  <tr>
+                    <td><strong>${customer(job.customerId)?.businessName || "Unknown"}</strong></td>
+                    <td>${job.jobType}</td>
+                    <td>${user(job.assignedEmployeeId)?.name || "Unassigned"}</td>
+                    <td>${job.dueDate}</td>
+                    <td>${badge(job.priority, job.priority === "High" ? "red" : job.priority === "Medium" ? "amber" : "")}</td>
+                    <td>
+                      <select onchange="updateJobStatus('${job.id}', this.value)">
+                        ${["New", "In Progress", "Completed"].map(s => `<option ${job.status === s ? "selected" : ""}>${s}</option>`).join("")}
+                      </select>
+                    </td>
+                    <td class="right">${money(job.amountPaid)}</td>
+                    <td class="right"><strong>${money(remaining(job))}</strong></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDashboard() {
+      return metricsHtml() + jobsTable(visibleJobs().slice(0, 5));
+    }
+
+    function renderCustomers() {
+      return `
+        <div class="toolbar">
+          <div></div>
+          <button class="btn" onclick="openCustomerModal()">Add customer</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-title">Customers</div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Business</th><th>Phone</th><th>Type</th><th class="right">Balance</th></tr></thead>
+              <tbody>${customers.map(c => `
+                <tr><td><strong>${c.businessName}</strong></td><td>${c.phoneNumber}</td><td>${c.businessType}</td><td class="right"><strong>${money(c.balance)}</strong></td></tr>
+              `).join("")}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderJobs() {
+      let list = visibleJobs();
+      if (filterStatus !== "All") list = list.filter(j => j.status === filterStatus);
+      if (filterPriority !== "All") list = list.filter(j => j.priority === filterPriority);
+      return `
+        <div class="toolbar">
+          <div class="control-row">
+            <select onchange="filterStatus=this.value;render()">
+              ${["All", "New", "In Progress", "Completed"].map(s => `<option ${filterStatus === s ? "selected" : ""}>${s}</option>`).join("")}
+            </select>
+            <select onchange="filterPriority=this.value;render()">
+              ${["All", "Low", "Medium", "High"].map(p => `<option ${filterPriority === p ? "selected" : ""}>${p}</option>`).join("")}
+            </select>
+          </div>
+          ${canManage() ? '<button class="btn" onclick="openJobModal()">New job</button>' : ''}
+        </div>
+        ${jobsTable(list)}
+      `;
+    }
+
+    function renderPayments() {
+      const visibleIds = new Set(visibleJobs().map(j => j.id));
+      const list = payments.filter(p => visibleIds.has(p.jobId));
+      return `
+        <div class="toolbar">
+          <div></div>
+          ${canManage() ? '<button class="btn" onclick="openPaymentModal()">Record payment</button>' : ''}
+        </div>
+        <div class="table-wrap">
+          <div class="table-title">Payments</div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Customer</th><th>Job</th><th>Received By</th><th>Date</th><th class="right">Amount</th></tr></thead>
+              <tbody>${list.map(p => {
+                const job = jobs.find(j => j.id === p.jobId);
+                return `<tr><td><strong>${customer(job?.customerId)?.businessName || "Unknown"}</strong></td><td>${job?.jobType || "Deleted job"}</td><td>${user(p.receivedBy)?.name || "Team"}</td><td>${p.paidAt}</td><td class="right"><strong>${money(p.amount)}</strong></td></tr>`;
+              }).join("")}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTeam() {
+      return `
+        <div class="table-wrap">
+          <div class="table-title">Team</div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Title</th><th>Role</th></tr></thead>
+              <tbody>${users.map(u => `<tr><td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.title}</td><td>${badge(u.role, u.role === "owner" ? "blue" : u.role === "manager" ? "green" : "")}</td></tr>`).join("")}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      recalcBalances();
+      renderNav();
+      const titles = { dashboard: "Dashboard", customers: "Customers", jobs: "Jobs", payments: "Payments", team: "Team" };
+      document.getElementById("pageTitle").textContent = titles[tab];
+      const screens = { dashboard: renderDashboard, customers: renderCustomers, jobs: renderJobs, payments: renderPayments, team: renderTeam };
+      document.getElementById("screen").innerHTML = screens[tab]();
+    }
+
+    function closeModal() {
+      document.getElementById("modalHost").innerHTML = "";
+    }
+
+    function modal(title, body) {
+      document.getElementById("modalHost").innerHTML = `
+        <div class="modal-backdrop">
+          <div class="modal">
+            <div class="modal-head"><strong>${title}</strong><button class="btn secondary" onclick="closeModal()">Close</button></div>
+            <div class="modal-body">${body}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openCustomerModal() {
+      modal("Add customer", `
+        <form class="form-grid" onsubmit="saveCustomer(event)">
+          <label>Business Name<input name="businessName" required></label>
+          <label>Phone Number<input name="phoneNumber" required></label>
+          <label>Business Type<input name="businessType" required></label>
+          <label>Starting Balance<input name="balance" type="number" min="0" step="0.01" value="0" required></label>
+          <label class="full"><button class="btn" type="submit">Save customer</button></label>
+        </form>
+      `);
+    }
+
+    function saveCustomer(event) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      customers.push({
+        id: "c" + Date.now(),
+        businessName: data.get("businessName"),
+        phoneNumber: data.get("phoneNumber"),
+        businessType: data.get("businessType"),
+        openingBalance: Number(data.get("balance")),
+        balance: Number(data.get("balance"))
+      });
+      closeModal();
+      render();
+    }
+
+    function openJobModal() {
+      modal("Create job", `
+        <form class="form-grid" onsubmit="saveJob(event)">
+          <label>Customer<select name="customerId">${customers.map(c => `<option value="${c.id}">${c.businessName}</option>`).join("")}</select></label>
+          <label>Service<select name="jobType">${services.map(s => `<option>${s}</option>`).join("")}</select></label>
+          <label>Fee<input name="fee" type="number" min="0" step="0.01" value="150" required></label>
+          <label>Amount Paid<input name="amountPaid" type="number" min="0" step="0.01" value="0" required></label>
+          <label>Assigned Employee<select name="assignedEmployeeId">${users.map(u => `<option value="${u.id}">${u.name}</option>`).join("")}</select></label>
+          <label>Status<select name="status"><option>New</option><option>In Progress</option><option>Completed</option></select></label>
+          <label>Due Date<input name="dueDate" type="date" value="2026-05-20" required></label>
+          <label>Priority<select name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+          <label class="full">Notes<textarea name="notes"></textarea></label>
+          <label class="full"><button class="btn" type="submit">Save job</button></label>
+        </form>
+      `);
+    }
+
+    function saveJob(event) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      jobs.push({
+        id: "j" + Date.now(),
+        customerId: data.get("customerId"),
+        jobType: data.get("jobType"),
+        fee: Number(data.get("fee")),
+        amountPaid: Number(data.get("amountPaid")),
+        assignedEmployeeId: data.get("assignedEmployeeId"),
+        status: data.get("status"),
+        dueDate: data.get("dueDate"),
+        priority: data.get("priority"),
+        notes: data.get("notes")
+      });
+      closeModal();
+      render();
+    }
+
+    function openPaymentModal() {
+      modal("Record payment", `
+        <form class="form-grid" onsubmit="savePayment(event)">
+          <label class="full">Job<select name="jobId">${jobs.map(j => `<option value="${j.id}">${customer(j.customerId)?.businessName} - ${j.jobType} (${money(remaining(j))} due)</option>`).join("")}</select></label>
+          <label>Amount<input name="amount" type="number" min="0" step="0.01" value="25" required></label>
+          <label>Note<input name="note"></label>
+          <label class="full"><button class="btn" type="submit">Save payment</button></label>
+        </form>
+      `);
+    }
+
+    function savePayment(event) {
+      event.preventDefault();
+      const data = new FormData(event.target);
+      const job = jobs.find(j => j.id === data.get("jobId"));
+      const amount = Number(data.get("amount"));
+      if (job) {
+        job.amountPaid = Math.min(job.fee, job.amountPaid + amount);
+        if (job.amountPaid >= job.fee) job.status = "Completed";
+      }
+      payments.push({ id: "p" + Date.now(), jobId: data.get("jobId"), amount, note: data.get("note"), receivedBy: "u1", paidAt: new Date().toISOString().slice(0, 10) });
+      closeModal();
+      render();
+    }
+
+    function updateJobStatus(id, status) {
+      const job = jobs.find(j => j.id === id);
+      if (job) job.status = status;
+      render();
+    }
+
+    document.getElementById("roleSelect").addEventListener("change", event => {
+      role = event.target.value;
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

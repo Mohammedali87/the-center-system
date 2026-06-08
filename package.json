@@ -1,0 +1,46 @@
+{
+  "name": "center-business-services",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npx convex dev\" \"next dev\"",
+    "dev:next": "next dev",
+    "dev:convex": "npx convex dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node node_modules/vitest/vitest.mjs run",
+    "seed": "npx convex run seed:installDemo",
+    "seed:stress": "npx convex run stressSeed:install",
+    "keys": "node generateKeys.mjs"
+  },
+  "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.91",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.1.2",
+    "convex": "^1.29.0",
+    "jose": "^5.9.6",
+    "lucide-react": "^0.468.0",
+    "next": "^16.2.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "convex-test": "^0.0.53",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^16.2.4",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  }
+}

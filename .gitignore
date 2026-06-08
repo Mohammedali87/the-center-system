@@ -1,0 +1,14 @@
+.next
+node_modules
+.env.local
+.env
+dist
+coverage
+*.tsbuildinfo
+convex/*.js
+convex/_generated
+.tools
+.npm-cache
+.localappdata
+.logs
+.vercel
