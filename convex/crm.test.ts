@@ -31,6 +31,35 @@ describe("CRM security and reminders", () => {
     ).rejects.toThrow(/this role/);
   });
 
+  test("removed users never appear in team lists and can be permanently purged", async () => {
+    const t = convexTest(schema, modules);
+    const ownerId = await insertUser(t, "owner", "owner@test.example");
+    const removedId = await insertUser(t, "employee", "removed@test.example");
+    await t.run(async (ctx) => {
+      await ctx.db.patch(removedId, { isActive: false, accessStatus: "removed" });
+      await ctx.db.insert("authAccounts", {
+        userId: removedId,
+        provider: "password",
+        providerAccountId: "removed@test.example",
+        secret: "test"
+      });
+    });
+    const asOwner = asUser(t, ownerId);
+
+    const includingInactive = await asOwner.query(api.auth.listEmployees, { includeInactive: true });
+    expect(includingInactive.map((user) => user._id)).not.toContain(removedId);
+    await expect(asOwner.mutation(api.auth.purgeRemovedUsers, {})).resolves.toEqual({ deleted: 1 });
+    const result = await t.run(async (ctx) => ({
+      user: await ctx.db.get(removedId),
+      accounts: await ctx.db
+        .query("authAccounts")
+        .withIndex("userIdAndProvider", (q) => q.eq("userId", removedId))
+        .take(10)
+    }));
+    expect(result.user).toBeNull();
+    expect(result.accounts).toHaveLength(0);
+  });
+
   test("staff can only see and update their assigned tasks", async () => {
     const t = convexTest(schema, modules);
     const ownerId = await insertUser(t, "owner", "owner@test.example");

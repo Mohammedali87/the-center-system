@@ -16,7 +16,7 @@ const accessStatuses: AccessStatus[] = ["active", "suspended", "removed"];
 type TeamSortKey = "name" | "email" | "phone" | "title" | "role" | "access";
 
 export function TeamPanel({ me }: { me: UserDoc | null }) {
-  const users = useQuery(api.auth.listEmployees, { includeInactive: true });
+  const users = useQuery(api.auth.listEmployees, { includeInactive: false });
   const createTeamUser = useAction(api.auth.createTeamUser);
   const resetUserPassword = useAction(api.auth.resetUserPassword);
   const updateTeamUser = useMutation(api.auth.updateTeamUser);

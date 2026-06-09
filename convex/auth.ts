@@ -89,9 +89,8 @@ export const listEmployees = query({
     const users = await ctx.db.query("users").take(100);
     const visibleUsers = users
       .filter((user) =>
-        args.includeInactive === true
-          ? true
-          : user.isActive !== false && user.accessStatus !== "suspended" && user.accessStatus !== "removed"
+        user.accessStatus !== "removed" &&
+        (args.includeInactive === true || (user.isActive !== false && user.accessStatus !== "suspended"))
       )
       .sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
     return await Promise.all(
@@ -422,6 +421,91 @@ export const updateTeamAccess = mutation({
       createdAt: Date.now()
     });
     return null;
+  }
+});
+
+export const purgeRemovedUsers = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const { userId: actorId } = await requireOwner(ctx);
+    const removedUsers = (await ctx.db.query("users").take(200)).filter(
+      (user) => user.accessStatus === "removed" && user._id !== actorId
+    );
+
+    for (const user of removedUsers) {
+      const sessions = await ctx.db
+        .query("authSessions")
+        .withIndex("userId", (q) => q.eq("userId", user._id))
+        .take(100);
+      for (const session of sessions) {
+        const refreshTokens = await ctx.db
+          .query("authRefreshTokens")
+          .withIndex("sessionId", (q) => q.eq("sessionId", session._id))
+          .take(100);
+        for (const token of refreshTokens) await ctx.db.delete(token._id);
+        await ctx.db.delete(session._id);
+      }
+
+      const accounts = await ctx.db
+        .query("authAccounts")
+        .withIndex("userIdAndProvider", (q) => q.eq("userId", user._id))
+        .take(20);
+      for (const account of accounts) {
+        const codes = await ctx.db
+          .query("authVerificationCodes")
+          .withIndex("accountId", (q) => q.eq("accountId", account._id))
+          .take(100);
+        for (const code of codes) await ctx.db.delete(code._id);
+        await ctx.db.delete(account._id);
+      }
+
+      const permissions = await ctx.db
+        .query("userPermissions")
+        .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+        .take(200);
+      for (const permission of permissions) await ctx.db.delete(permission._id);
+
+      const notifications = await ctx.db
+        .query("notifications")
+        .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+        .take(500);
+      for (const notification of notifications) await ctx.db.delete(notification._id);
+
+      const proposals = await ctx.db
+        .query("chatProposals")
+        .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+        .take(200);
+      for (const proposal of proposals) await ctx.db.delete(proposal._id);
+
+      const performance = await ctx.db
+        .query("employeePerformanceSnapshots")
+        .withIndex("by_employee_id", (q) => q.eq("employeeId", user._id))
+        .take(200);
+      for (const row of performance) await ctx.db.delete(row._id);
+
+      const employeeNotes = await ctx.db
+        .query("employeeNotes")
+        .withIndex("by_employee_id", (q) => q.eq("employeeId", user._id))
+        .take(200);
+      for (const note of employeeNotes) await ctx.db.delete(note._id);
+
+      const audits = await ctx.db
+        .query("auditLogs")
+        .withIndex("by_target_user_id", (q) => q.eq("targetUserId", user._id))
+        .take(500);
+      for (const audit of audits) await ctx.db.delete(audit._id);
+
+      await ctx.db.delete(user._id);
+    }
+
+    await ctx.db.insert("auditLogs", {
+      userId: actorId,
+      action: "team.removed_users_purged",
+      entityType: "users",
+      newValue: String(removedUsers.length),
+      createdAt: Date.now()
+    });
+    return { deleted: removedUsers.length };
   }
 });
 
