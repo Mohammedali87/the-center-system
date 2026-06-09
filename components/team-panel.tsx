@@ -262,7 +262,13 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
                   <Input name="email" type="email" required />
                 </Field>
                 <Field label="Temporary Password">
-                  <Input name="password" type="password" minLength={8} required />
+                  <Input
+                    name="password"
+                    type="password"
+                    minLength={10}
+                    placeholder="10+ characters, uppercase, lowercase, number"
+                    required
+                  />
                 </Field>
               </div>
             ) : null}
