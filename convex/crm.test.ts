@@ -9,6 +9,28 @@ import schema from "./schema";
 const modules = import.meta.glob("./**/*.ts");
 
 describe("CRM security and reminders", () => {
+  test("user creation requires role-change permission for privileged roles", async () => {
+    const t = convexTest(schema, modules);
+    const staffId = await insertUser(t, "employee", "staff@test.example");
+    await t.run(async (ctx) => {
+      await ctx.db.insert("userPermissions", {
+        userId: staffId,
+        permissionKey: "team.add",
+        granted: true,
+        updatedBy: staffId,
+        updatedAt: Date.now()
+      });
+    });
+    const asStaff = asUser(t, staffId);
+
+    await expect(
+      asStaff.query(internal.auth.authorizeTeamUserCreation, { role: "employee" })
+    ).resolves.toBe(staffId);
+    await expect(
+      asStaff.query(internal.auth.authorizeTeamUserCreation, { role: "manager" })
+    ).rejects.toThrow(/Change roles/);
+  });
+
   test("staff can only see and update their assigned tasks", async () => {
     const t = convexTest(schema, modules);
     const ownerId = await insertUser(t, "owner", "owner@test.example");

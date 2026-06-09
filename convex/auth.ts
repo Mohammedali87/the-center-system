@@ -111,6 +111,17 @@ export const requireTeamAddForAction = internalQuery({
   }
 });
 
+export const authorizeTeamUserCreation = internalQuery({
+  args: { role: roleValidator },
+  handler: async (ctx, args) => {
+    const { userId } = await requirePermission(ctx, "team.add");
+    if (args.role !== "employee") {
+      await requirePermission(ctx, "team.change_roles");
+    }
+    return userId;
+  }
+});
+
 export const getPasswordAccountForCurrentUser = internalQuery({
   args: {},
   handler: async (ctx) => {
@@ -140,7 +151,9 @@ export const createTeamUser = action({
     phone: v.optional(v.string())
   },
   handler: async (ctx, args): Promise<Id<"users">> => {
-    await ctx.runQuery(internal.auth.requireTeamAddForAction, {});
+    const actorId = await ctx.runQuery(internal.auth.authorizeTeamUserCreation, {
+      role: args.role
+    });
     const email = args.email.trim().toLowerCase();
     const name = args.name.trim();
     const title = args.title?.trim() || roleTitle(args.role);
@@ -190,7 +203,7 @@ export const createTeamUser = action({
       accessStatus: "active"
     });
     await ctx.runMutation(internal.auth.recordUserCreated, {
-      actorId: await ctx.runQuery(internal.auth.requireTeamAddForAction, {}),
+      actorId,
       userId: created.user._id,
       role: args.role
     });
