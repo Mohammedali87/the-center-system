@@ -45,8 +45,9 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
     const data = new FormData(event.currentTarget);
     const role = String(data.get("role") ?? "employee") as Role;
     const password = String(data.get("password") ?? "");
-    if (editing === "new" && !isValidTemporaryPassword(password)) {
-      setError("Temporary password must be at least 10 characters and include uppercase, lowercase, and a number.");
+    const passwordError = temporaryPasswordError(password);
+    if (editing === "new" && passwordError) {
+      setError(passwordError);
       return;
     }
     setPending(true);
@@ -274,6 +275,9 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
                     placeholder="10+ characters, uppercase, lowercase, number"
                     required
                   />
+                  <p className="mt-1 text-xs text-muted">
+                    Must contain at least 10 characters, one uppercase letter, one lowercase letter, and one number.
+                  </p>
                 </Field>
               </div>
             ) : null}
@@ -324,8 +328,19 @@ function accessLabel(status: AccessStatus) {
   return "Removed";
 }
 
-function isValidTemporaryPassword(password: string) {
-  return password.length >= 10 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password);
+function temporaryPasswordError(password: string) {
+  const missing = [];
+  if (password.length < 10) missing.push(`${10 - password.length} more character${10 - password.length === 1 ? "" : "s"}`);
+  if (!/[A-Z]/.test(password)) missing.push("an uppercase letter");
+  if (!/[a-z]/.test(password)) missing.push("a lowercase letter");
+  if (!/\d/.test(password)) missing.push("a number");
+  return missing.length > 0 ? `Temporary password is missing ${formatList(missing)}.` : null;
+}
+
+function formatList(items: string[]) {
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
 }
 
 function teamErrorMessage(error: unknown, fallback: string) {
