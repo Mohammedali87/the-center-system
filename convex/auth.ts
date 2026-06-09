@@ -114,11 +114,19 @@ export const requireTeamAddForAction = internalQuery({
 export const authorizeTeamUserCreation = internalQuery({
   args: { role: roleValidator },
   handler: async (ctx, args) => {
-    const { userId } = await requirePermission(ctx, "team.add");
-    if (args.role !== "employee") {
-      await requirePermission(ctx, "team.change_roles");
+    try {
+      const { userId } = await requirePermission(ctx, "team.add");
+      if (args.role !== "employee") {
+        await requirePermission(ctx, "team.change_roles");
+      }
+      return userId;
+    } catch {
+      throw new ConvexError(
+        args.role === "employee"
+          ? "You do not have permission to add users."
+          : "You do not have permission to add users with this role."
+      );
     }
-    return userId;
   }
 });
 
@@ -160,10 +168,10 @@ export const createTeamUser = action({
     const phone = cleanOptional(args.phone);
 
     if (!email.includes("@")) {
-      throw new Error("Enter a valid email address.");
+      throw new ConvexError("Enter a valid email address.");
     }
     if (name.length === 0) {
-      throw new Error("Name is required.");
+      throw new ConvexError("Name is required.");
     }
     validatePassword(args.password);
 
@@ -171,7 +179,7 @@ export const createTeamUser = action({
       email
     });
     if (existing) {
-      throw new Error("A team member with that email already exists.");
+      throw new ConvexError("A team member with that email already exists.");
     }
 
     const created = await createAccount(ctx, {
@@ -484,7 +492,7 @@ function cleanOptionalString(value: string | null | undefined) {
 
 function validatePassword(password: string) {
   if (password.length < 10 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
-    throw new Error("Password must be at least 10 characters and include uppercase, lowercase, and a number.");
+    throw new ConvexError("Password must be at least 10 characters and include uppercase, lowercase, and a number.");
   }
 }
 

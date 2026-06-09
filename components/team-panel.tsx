@@ -42,9 +42,14 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    setPending(true);
     const data = new FormData(event.currentTarget);
     const role = String(data.get("role") ?? "employee") as Role;
+    const password = String(data.get("password") ?? "");
+    if (editing === "new" && !isValidTemporaryPassword(password)) {
+      setError("Temporary password must be at least 10 characters and include uppercase, lowercase, and a number.");
+      return;
+    }
+    setPending(true);
     const payload = {
       name: String(data.get("name") ?? ""),
       title: String(data.get("title") ?? roleLabel(role)),
@@ -57,7 +62,7 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
         await createTeamUser({
           ...payload,
           email: String(data.get("email") ?? ""),
-          password: String(data.get("password") ?? "")
+          password
         });
       } else if (editing) {
         await updateTeamUser({
@@ -68,7 +73,7 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
       }
       setEditing(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save team member.");
+      setError(teamErrorMessage(err, "Unable to save team member."));
     } finally {
       setPending(false);
     }
@@ -83,7 +88,7 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
     try {
       await updateTeamAccess({ userId: user._id, accessStatus });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update access.");
+      setError(teamErrorMessage(err, "Unable to update access."));
     }
   }
 
@@ -95,7 +100,7 @@ export function TeamPanel({ me }: { me: UserDoc | null }) {
       await resetUserPassword({ userId: user._id, temporaryPassword });
       window.alert("Temporary password set. The user must change it on next login.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to reset password.");
+      setError(teamErrorMessage(err, "Unable to reset password."));
     }
   }
 
@@ -317,6 +322,18 @@ function accessLabel(status: AccessStatus) {
   if (status === "active") return "Active";
   if (status === "suspended") return "Suspended";
   return "Removed";
+}
+
+function isValidTemporaryPassword(password: string) {
+  return password.length >= 10 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password);
+}
+
+function teamErrorMessage(error: unknown, fallback: string) {
+  if (error && typeof error === "object" && "data" in error) {
+    const data = (error as { data?: unknown }).data;
+    if (typeof data === "string" && data.trim()) return data;
+  }
+  return error instanceof Error ? error.message : fallback;
 }
 
 function compareTeamUsers(a: UserDoc, b: UserDoc, key: TeamSortKey) {

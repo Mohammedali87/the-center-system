@@ -28,7 +28,7 @@ describe("CRM security and reminders", () => {
     ).resolves.toBe(staffId);
     await expect(
       asStaff.query(internal.auth.authorizeTeamUserCreation, { role: "manager" })
-    ).rejects.toThrow(/Change roles/);
+    ).rejects.toThrow(/this role/);
   });
 
   test("staff can only see and update their assigned tasks", async () => {
